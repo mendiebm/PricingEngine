@@ -4,14 +4,30 @@ using System.Linq;
 
 namespace PricingEngine
 {
+    /// <summary>
+    /// The base class for rules. 
+    /// All rules require the SKUs affected, and the known SKUs (for validation)
+    /// Rules must implement a method returning the calculated price, and the remaining line items after discounted items are removed
+    /// </summary>
     public abstract class Rule
     {        
+        /// <summary>
+        /// The Stock Keeping Units that this rule involves
+        /// </summary>
         public IEnumerable<string> AffectedSkus
         {
             get; private set;
         }
         
-
+        /// <summary>
+        /// The constructor for a base rule
+        /// </summary>
+        /// <param name="affectedSkus">
+        /// The list of stock keeping units affects (<seealso cref="AffectedSkus"/>
+        /// </param>
+        /// <param name="stockKeepingUnits">
+        /// The list of known SKUs, used to validate <paramref name="affectedSkus"/>
+        /// </param>
         protected Rule(IEnumerable<string> affectedSkus, Dictionary<string, decimal> stockKeepingUnits)
         {
             if (affectedSkus == null || !affectedSkus.Any())
@@ -32,7 +48,7 @@ namespace PricingEngine
                 }
             }
 
-            AffectedSkus = affectedSkus;
+            AffectedSkus = affectedSkus.Distinct();
         }
 
         /// <summary>
@@ -44,7 +60,5 @@ namespace PricingEngine
         /// The value of the affected items in <paramref name="lineItems"/>
         /// </returns>
         public abstract decimal CalculateTotal(ref Dictionary<string, uint> lineItems);
-    }
-    
-    // Future extension public class PercenttageDiscountRule : Rule
+    }    
 }

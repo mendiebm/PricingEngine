@@ -4,6 +4,10 @@ using System.Linq;
 
 namespace PricingEngine
 {
+    /// <summary>
+    /// The primary class for the pricing engine.
+    /// With a given lisk of SKUs, and a list of applicable rules, calculate the total for a list of purchased items
+    /// </summary>
     public class Pricing
     {
         private readonly Dictionary<string, decimal> stockKeepingUnits;
