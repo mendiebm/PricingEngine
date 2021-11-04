@@ -41,7 +41,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LineItem.cs" />
     <Compile Include="Pricing.cs" />
     <Compile Include="Rule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

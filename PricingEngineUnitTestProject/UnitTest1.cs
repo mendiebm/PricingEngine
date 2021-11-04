@@ -22,43 +22,62 @@ namespace PricingEngineUnitTestProject
                 {"D", 15}
             };
 
-            FixedPriceDiscountRule multiBuyA = new FixedPriceDiscountRule(
-                new[] { new FixedPriceDiscountRule.AffectedSku("A", 3) }, 
-                130, 
-                stockKeepingUnits);
+            FixedPriceDiscountRule multiBuyA = new FixedPriceDiscountRule(                
+                affectedSku: "A", 
+                requiredQuantity: 3, 
+                price: 130, 
+                stockKeepingUnits: stockKeepingUnits);
             FixedPriceDiscountRule multiBuyB = new FixedPriceDiscountRule(
-                new[] { new FixedPriceDiscountRule.AffectedSku("B", 2) }, 
-                45, 
-                stockKeepingUnits);
-            FixedPriceDiscountRule comboBuyCD = new FixedPriceDiscountRule(
-                new[] 
-                {
-                    new FixedPriceDiscountRule.AffectedSku("C", 1),
-                    new FixedPriceDiscountRule.AffectedSku("D", 1) 
-                }, 
-                30, 
-                stockKeepingUnits);
+                affectedSku: "B", 
+                requiredQuantity: 2, 
+                price: 45, 
+                stockKeepingUnits: stockKeepingUnits);
+            ComboBuyDiscountRule comboBuyCD = new ComboBuyDiscountRule(
+                new List<string> { "C", "D" }, 
+                price: 30, 
+                stockKeepingUnits: stockKeepingUnits);
 
-            pricing = new Pricing(stockKeepingUnits, new[] { multiBuyA, multiBuyB, comboBuyCD });
+            pricing = new Pricing(stockKeepingUnits, new List<Rule> { multiBuyA, multiBuyB, comboBuyCD });
         }
 
         [TestMethod]
         public void TestMethodNoAppliedPromotions()
         {
-            LineItem[] lineItems = new[] { new LineItem("A", 1, stockKeepingUnits), new LineItem("B", 1, stockKeepingUnits), new LineItem("C", 1, stockKeepingUnits) };            
-            Assert.AreEqual(100, pricing.CalculateTotal(lineItems), "");
+            Dictionary<string, uint> lineItems = new Dictionary<string, uint>
+            {
+                { "A", 1 }, 
+                { "B", 1 }, 
+                { "C", 1 } 
+            };            
+            
+            Assert.AreEqual(100, pricing.CalculateTotal(lineItems), "No promotions should take effect");
         }
 
         [TestMethod]
         public void TestMethodMultiBuyAB()
         {
-            Assert.Inconclusive();
+            Dictionary<string, uint> lineItems = new Dictionary<string, uint>
+            {
+                { "A", 5 },
+                { "B", 5 },
+                { "C", 1 }
+            };
+
+            Assert.AreEqual(370, pricing.CalculateTotal(lineItems), "Promotions A and B should take effect");
         }
 
         [TestMethod]
-        public void TestMethodComboBuyCD()
+        public void TestMethodMultiBuyABComboBuyCD()
         {
-            Assert.Inconclusive();
+            Dictionary<string, uint> lineItems = new Dictionary<string, uint>()
+            {
+                { "A", 3 },
+                { "B", 5 },
+                { "C", 1 },
+                { "D", 1 }
+            };
+
+            Assert.AreEqual(280, pricing.CalculateTotal(lineItems), "Multibuy A and B, and combo C and D should take effect");
         }
     }
 }

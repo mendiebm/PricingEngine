@@ -7,57 +7,85 @@ using System.Threading.Tasks;
 namespace PricingEngine
 {
     public abstract class Rule
-    {
-        internal IEnumerable<string> StockKeepingUnits;
+    {        
+        public IEnumerable<string> AffectedSkus
+        {
+            get; private set;
+        }
+
+        public Dictionary<string, decimal> StockKeepingUnits
+        {
+            get; private set;
+        }
+
+        protected Rule(IEnumerable<string> affectedSkus, Dictionary<string, decimal> stockKeepingUnits)
+        {
+            if (affectedSkus == null || !affectedSkus.Any())
+            {
+                throw new ArgumentNullException(nameof(affectedSkus), "Affected SKUs must be provided");
+            }
+
+            if (stockKeepingUnits == null || !stockKeepingUnits.Any())
+            {
+                throw new ArgumentNullException(nameof(stockKeepingUnits), "Stock keeping units must be provided");
+            }
+
+            StockKeepingUnits = stockKeepingUnits;
+            
+
+            foreach (string affectedSku in affectedSkus)
+            {
+                if (!stockKeepingUnits.ContainsKey(affectedSku))
+                {
+                    throw new ArgumentException(nameof(affectedSkus), $"Unknown line item SKU {affectedSku}");
+                }
+            }
+
+            AffectedSkus = affectedSkus;
+        }
     }
 
     public class FixedPriceDiscountRule : Rule
     {
-        public struct AffectedSku
-        {
-            public string Name
-            {
-                get; private set;
-            }
-
-            public uint Quantity
-            {
-                get; private set;
-            }
-
-            public AffectedSku(string name, uint quantity)
-            {
-                if (string.IsNullOrEmpty(name))
-                {
-                    throw new ArgumentException("Name cannot be null or empty", nameof(name));
-                }
-
-                Name = name;
-                Quantity = quantity;
-            }
-        }
-
         internal decimal Price;
+        internal string AffectedSku;
+        internal uint RequiredQuantity;
 
-        public FixedPriceDiscountRule(IEnumerable<AffectedSku> affectedSkus, decimal price, Dictionary<string, decimal> stockKeepingUnits)
+        public FixedPriceDiscountRule(string affectedSku, uint requiredQuantity, decimal price, Dictionary<string, decimal> stockKeepingUnits) : base(new List<string> { affectedSku }, stockKeepingUnits)
         {
-            if (affectedSkus == null)
-            {
-                throw new ArgumentNullException(nameof(affectedSkus));
-            }
-
             if (price < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(price), "Price cannot be less than 0");
             }
 
-            foreach (AffectedSku affectedSku in affectedSkus)
+            if (string.IsNullOrEmpty(affectedSku))
             {
-                if (!stockKeepingUnits.ContainsKey(affectedSku.Name))
-                {
-                    throw new ArgumentException($"Unknown line item SKU {affectedSku.Name}");
-                }
+                throw new ArgumentNullException(nameof(price), "Affected SKU must be provided");
             }
+                        
+            if (!stockKeepingUnits.ContainsKey(affectedSku))
+            {
+                throw new ArgumentException($"Unknown line item SKU {affectedSku}");
+            }            
+
+            Price = price;
+            RequiredQuantity = requiredQuantity;
+        }
+    }
+
+    public class ComboBuyDiscountRule : Rule
+    {
+        internal decimal Price;        
+        internal uint RequiredQuantity;
+
+        public ComboBuyDiscountRule(IEnumerable<string> affectedSkus, decimal price, Dictionary<string, decimal> stockKeepingUnits) : base(affectedSkus, stockKeepingUnits)
+        {
+            if (price < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(price), "Price cannot be less than 0");
+            }
+
+            Price = price;
         }
     }
 

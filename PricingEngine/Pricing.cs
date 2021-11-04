@@ -34,11 +34,50 @@ namespace PricingEngine
             Rules = rules;
         }
 
-        public decimal CalculateTotal(IEnumerable<LineItem> lineItems)
+        public decimal CalculateTotal(Dictionary<string, uint> lineItems)
         {
+            Dictionary<string, uint> remainingItems = new Dictionary<string, uint>(lineItems);
+
             decimal total = 0;
 
+            foreach (Rule rule in Rules)
+            {
+                List<string> itemKeys = lineItems.Keys.ToList();
+                if (itemKeys.Intersect(rule.AffectedSkus).SequenceEqual(rule.AffectedSkus))
+                {
+                    total = total + ProcessRule(ref remainingItems, rule);
+                }
+            }
 
+            foreach (KeyValuePair<string, uint> remaining in remainingItems)
+            {
+                total = total + (StockKeepingUnits[remaining.Key] * remaining.Value);
+            }
+
+            return total;
+        }
+
+        private decimal ProcessRule(ref Dictionary<string, uint> lineItems, Rule rule)
+        {
+            decimal total = 0;
+            FixedPriceDiscountRule fixedPriceDiscountRule = rule as FixedPriceDiscountRule;
+            if (fixedPriceDiscountRule != null)
+            {
+                while (true)
+                {
+                    string affectedSku = fixedPriceDiscountRule.AffectedSkus.First();
+                    if (lineItems[affectedSku] >= fixedPriceDiscountRule.RequiredQuantity)
+                    {
+                        lineItems[affectedSku] = lineItems[affectedSku] - fixedPriceDiscountRule.RequiredQuantity;
+                        total = total + fixedPriceDiscountRule.Price;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+            }
 
             return total;
         }
