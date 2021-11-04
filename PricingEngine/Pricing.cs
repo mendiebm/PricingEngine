@@ -18,6 +18,7 @@ namespace PricingEngine
         /// </param>
         /// <param name="rules">
         /// A list of rules that applies to <paramref name="stockKeepingUnits"/>        
+        /// These rules will be applied in the order provided.
         /// </param>
         /// <remarks>
         /// Rules referencing an item not in <paramref name="stockKeepingUnits"/> will be silently ignored

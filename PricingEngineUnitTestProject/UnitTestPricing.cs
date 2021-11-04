@@ -7,44 +7,72 @@ namespace PricingEngineUnitTestProject
 {
     [TestClass]
     public class UnitTestPricing
-    {
-        private static Pricing pricing;
-        private static Dictionary<string, decimal> stockKeepingUnits;
-        private static List<Rule> rules;
-
-        [ClassInitialize]
-        public static void InitializePricingEngine(TestContext context)
-        {
-            stockKeepingUnits = new Dictionary<string, decimal>
+    {        
+        private static Dictionary<string, decimal> stockKeepingUnits = new Dictionary<string, decimal>
             {
-                {"A", 50 },
+                {"A", 50},
                 {"B", 30},
                 {"C", 20},
                 {"D", 15}
             };
 
-            FixedPriceDiscountRule multiBuyA = new FixedPriceDiscountRule(                
-                affectedSku: "A", 
-                requiredQuantity: 3, 
-                price: 130, 
-                stockKeepingUnits: stockKeepingUnits);
-            FixedPriceDiscountRule multiBuyB = new FixedPriceDiscountRule(
-                affectedSku: "B", 
-                requiredQuantity: 2, 
-                price: 45, 
-                stockKeepingUnits: stockKeepingUnits);
-            ComboBuyDiscountRule comboBuyCD = new ComboBuyDiscountRule(
-                new List<string> { "C", "D" }, 
-                price: 30, 
-                stockKeepingUnits: stockKeepingUnits);
+        private static FixedPriceDiscountRule multiBuyA = new FixedPriceDiscountRule(
+            affectedSku: "A",
+            requiredQuantity: 3,
+            price: 130,
+            stockKeepingUnits: stockKeepingUnits);
+        private static FixedPriceDiscountRule multiBuyB = new FixedPriceDiscountRule(
+            affectedSku: "B",
+            requiredQuantity: 2,
+            price: 45,
+            stockKeepingUnits: stockKeepingUnits);
+        private static ComboBuyDiscountRule comboBuyCD = new ComboBuyDiscountRule(
+            affectedSkus: new List<string> { "C", "D" },
+            price: 30,
+            stockKeepingUnits: stockKeepingUnits);
+        private static PercentageDiscountRule percentageDiscountRuleA = new PercentageDiscountRule(
+            affectedSku : "A",
+            percentageReduction: 10,            
+            stockKeepingUnits: stockKeepingUnits);
 
-            rules = new List<Rule> { multiBuyA, multiBuyB, comboBuyCD };
-            pricing = new Pricing(stockKeepingUnits, rules);
+        [TestMethod]
+        public void TestMethodPercentageReductionRuleLast()
+        {
+            List<Rule> rules = new List<Rule> { multiBuyA, multiBuyB, comboBuyCD, percentageDiscountRuleA };
+            Pricing pricing = new Pricing(stockKeepingUnits, rules);
+
+            Dictionary<string, uint> lineItems = new Dictionary<string, uint>
+            {
+                { "A", 4 }, // 3 for 130, 1 at 45
+                { "B", 1 }, // 1 at 30 
+                { "C", 2 } // 2 at 20
+            };
+
+            Assert.AreEqual(130 + (1 * 45) + (1 * 30) + (2 * 20), pricing.CalculateTotal(lineItems), "3xA at 130 + 1xA at 45, 1xB at 30 and 2xC");
+        }
+
+        [TestMethod]
+        public void TestMethodPercentageReductionRuleFirst()
+        {
+            List<Rule> rules = new List<Rule> { percentageDiscountRuleA, multiBuyA, multiBuyB, comboBuyCD };
+            Pricing pricing = new Pricing(stockKeepingUnits, rules);
+
+            Dictionary<string, uint> lineItems = new Dictionary<string, uint>
+            {
+                { "A", 4 }, // 4 at 45
+                { "B", 1 }, // 1 at 30 
+                { "C", 2 } // 2 at 20
+            };
+
+            Assert.AreEqual((4 * 45) + (1 * 30) + (2 * 20), pricing.CalculateTotal(lineItems), "4xA at 45 each, 1xB at 30 and 2xC");
         }
 
         [TestMethod]
         public void TestMethodNoAppliedPromotions1()
         {
+            List<Rule> rules = new List<Rule> { multiBuyA, multiBuyB, comboBuyCD };
+            Pricing pricing = new Pricing(stockKeepingUnits, rules);
+
             Dictionary<string, uint> lineItems = new Dictionary<string, uint>
             {
                 { "A", 1 }, 
@@ -52,12 +80,15 @@ namespace PricingEngineUnitTestProject
                 { "C", 1 } 
             };            
             
-            Assert.AreEqual(100, pricing.CalculateTotal(lineItems), "No promotions should take effect");
+            Assert.AreEqual(50 + 30 + 20, pricing.CalculateTotal(lineItems), "No promotions should take effect");
         }
 
         [TestMethod]
         public void TestMethodNoAppliedPromotions2()
         {
+            List<Rule> rules = new List<Rule> { multiBuyA, multiBuyB, comboBuyCD };
+            Pricing pricing = new Pricing(stockKeepingUnits, rules);
+
             Dictionary<string, uint> lineItems = new Dictionary<string, uint>
             {
                 { "A", 2 }, 
@@ -65,17 +96,20 @@ namespace PricingEngineUnitTestProject
                 { "C", 2 } 
             };
 
-            Assert.AreEqual(170, pricing.CalculateTotal(lineItems), "No promotions should take effect");
+            Assert.AreEqual((50 * 2) + 30 + (20 * 2) , pricing.CalculateTotal(lineItems), "No promotions should take effect");
         }
 
         [TestMethod]
         public void TestMethodMultiBuyAB()
         {
+            List<Rule> rules = new List<Rule> { multiBuyA, multiBuyB, comboBuyCD };
+            Pricing pricing = new Pricing(stockKeepingUnits, rules);
+
             Dictionary<string, uint> lineItems = new Dictionary<string, uint>
             {
-                { "A", 5 },
-                { "B", 5 },
-                { "C", 1 }
+                { "A", 5 }, // 3 for 130, 2 at 50 each 
+                { "B", 5 }, // 2 of 2 for 45, 1 at 30
+                { "C", 1 } // 1 at 15
             };
 
             Assert.AreEqual(370, pricing.CalculateTotal(lineItems), "Promotions A and B should take effect");
@@ -84,12 +118,15 @@ namespace PricingEngineUnitTestProject
         [TestMethod]
         public void TestMethodMultiBuyABComboBuyCD()
         {
+            List<Rule> rules = new List<Rule> { multiBuyA, multiBuyB, comboBuyCD };
+            Pricing pricing = new Pricing(stockKeepingUnits, rules);
+
             Dictionary<string, uint> lineItems = new Dictionary<string, uint>()
             {
-                { "A", 3 },
-                { "B", 5 },
-                { "C", 1 },
-                { "D", 1 }
+                { "A", 3 }, // 3 for 130, 2 at 50 each 
+                { "B", 5 }, // 2 of 2 for 45, 1 at 30
+                { "C", 1 }, 
+                { "D", 1 } // C and D for 30
             };
 
             Assert.AreEqual(280, pricing.CalculateTotal(lineItems), "Multibuy A and B, and combo C and D should take effect");
@@ -98,6 +135,9 @@ namespace PricingEngineUnitTestProject
         [TestMethod]
         public void TestMethodUnknownItem()
         {
+            List<Rule> rules = new List<Rule> { multiBuyA, multiBuyB, comboBuyCD };
+            Pricing pricing = new Pricing(stockKeepingUnits, rules);
+
             Dictionary<string, uint> lineItems = new Dictionary<string, uint>()
             {
                 { "A", 3 },
@@ -114,6 +154,9 @@ namespace PricingEngineUnitTestProject
         [TestMethod]
         public void TestMethodUnknownItems()
         {
+            List<Rule> rules = new List<Rule> { multiBuyA, multiBuyB, comboBuyCD };
+            Pricing pricing = new Pricing(stockKeepingUnits, rules);
+
             Dictionary<string, uint> lineItems = new Dictionary<string, uint>()
             {
                 { "A", 3 },
@@ -131,6 +174,8 @@ namespace PricingEngineUnitTestProject
         [TestMethod]
         public void TestMethodInvalidStockKeepingItems()
         {
+            List<Rule> rules = new List<Rule> { multiBuyA, multiBuyB, comboBuyCD };
+            
             ArgumentNullException exception = Assert.ThrowsException<ArgumentNullException>(() => new Pricing(null, rules));
             Assert.AreEqual("Value cannot be null.\r\nParameter name: stockKeepingUnits", exception.Message);
         }
