@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PricingEngine;
+using System;
 using System.Collections.Generic;
 
 namespace PricingEngineUnitTestProject
@@ -40,7 +41,7 @@ namespace PricingEngineUnitTestProject
         }
 
         [TestMethod]
-        public void TestMethodNoAppliedPromotions()
+        public void TestMethodNoAppliedPromotions1()
         {
             Dictionary<string, uint> lineItems = new Dictionary<string, uint>
             {
@@ -50,6 +51,19 @@ namespace PricingEngineUnitTestProject
             };            
             
             Assert.AreEqual(100, pricing.CalculateTotal(lineItems), "No promotions should take effect");
+        }
+
+        [TestMethod]
+        public void TestMethodNoAppliedPromotions2()
+        {
+            Dictionary<string, uint> lineItems = new Dictionary<string, uint>
+            {
+                { "A", 2 }, 
+                { "B", 1 }, 
+                { "C", 2 } 
+            };
+
+            Assert.AreEqual(170, pricing.CalculateTotal(lineItems), "No promotions should take effect");
         }
 
         [TestMethod]
@@ -77,6 +91,22 @@ namespace PricingEngineUnitTestProject
             };
 
             Assert.AreEqual(280, pricing.CalculateTotal(lineItems), "Multibuy A and B, and combo C and D should take effect");
+        }
+
+        [TestMethod]
+        public void TestMethodUnknownItem()
+        {
+            Dictionary<string, uint> lineItems = new Dictionary<string, uint>()
+            {
+                { "A", 3 },
+                { "B", 5 },
+                { "C", 1 },
+                { "D", 1 },
+                { "E", 1 }
+            };
+
+            ArgumentOutOfRangeException exception = Assert.ThrowsException<ArgumentOutOfRangeException>(() => pricing.CalculateTotal(lineItems));
+            Assert.AreEqual("Line item E is not a valid stock keeping unit\r\nParameter name: lineItems", exception.Message);
         }
     }
 }

@@ -47,8 +47,20 @@ namespace PricingEngine
         /// <returns>
         /// The items total after all discounts have been applied
         /// </returns>
+        /// <throws>
+        /// <see cref="ArgumentOutOfRangeException"/> if any of the provided items are not a part of the instance stock keeping units
+        /// </throws>
         public decimal CalculateTotal(Dictionary<string, uint> lineItems)
         {
+            IEnumerable<string> unknownItems = lineItems.Keys.Except(stockKeepingUnits.Keys);
+            if (unknownItems.Any())
+            {
+                string message = unknownItems.Count() == 1 ?
+                    $"Line item {unknownItems.First()} is not a valid stock keeping unit" :
+                    $"Line items {string.Join(",", unknownItems)} are not valid stock keeping units";
+                throw new ArgumentOutOfRangeException(nameof(lineItems), message);                    
+            }
+
             Dictionary<string, uint> remainingItems = new Dictionary<string, uint>(lineItems);
 
             decimal total = 0;
