@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PricingEngine
 {
@@ -47,9 +45,15 @@ namespace PricingEngine
 
     public class FixedPriceDiscountRule : Rule
     {
-        internal decimal Price;
-        internal string AffectedSku;
-        internal uint RequiredQuantity;
+        internal decimal Price
+        {
+            get; private set;
+        }
+
+        internal uint RequiredQuantity
+        {
+            get; private set;
+        }
 
         public FixedPriceDiscountRule(string affectedSku, uint requiredQuantity, decimal price, Dictionary<string, decimal> stockKeepingUnits) : base(new List<string> { affectedSku }, stockKeepingUnits)
         {
@@ -75,8 +79,10 @@ namespace PricingEngine
 
     public class ComboBuyDiscountRule : Rule
     {
-        internal decimal Price;        
-        internal uint RequiredQuantity;
+        internal decimal Price
+        {
+            get; private set;
+        }
 
         public ComboBuyDiscountRule(IEnumerable<string> affectedSkus, decimal price, Dictionary<string, decimal> stockKeepingUnits) : base(affectedSkus, stockKeepingUnits)
         {
