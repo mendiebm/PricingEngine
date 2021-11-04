@@ -2,7 +2,7 @@
 
 namespace PricingEngine
 {
-    internal class StockKeepingUnit
+    public class StockKeepingUnit
     {
         internal string Name
         {
@@ -14,7 +14,7 @@ namespace PricingEngine
             get; private set;
         }
 
-        internal StockKeepingUnit(string name, decimal price)
+        public StockKeepingUnit(string name, decimal price)
         {
             if (string.IsNullOrEmpty(name))
             {
