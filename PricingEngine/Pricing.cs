@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace PricingEngine
 {
-    internal class Pricing
+    public class Pricing
     {
-        internal IEnumerable<StockKeepingUnit> StockKeepingUnits
+        internal Dictionary<string, decimal> StockKeepingUnits
         {
             get; private set;
         }
@@ -18,7 +18,7 @@ namespace PricingEngine
             get; private set;
         }
 
-        internal Pricing(IEnumerable<StockKeepingUnit> stockKeepingUnits,  IEnumerable<Rule> rules)
+        public Pricing(Dictionary<string, decimal> stockKeepingUnits,  IEnumerable<Rule> rules)
         {
             if (stockKeepingUnits == null)
             {
@@ -32,6 +32,15 @@ namespace PricingEngine
 
             StockKeepingUnits = stockKeepingUnits;
             Rules = rules;
+        }
+
+        public decimal CalculateTotal(IEnumerable<LineItem> lineItems)
+        {
+            decimal total = 0;
+
+
+
+            return total;
         }
     }
 }

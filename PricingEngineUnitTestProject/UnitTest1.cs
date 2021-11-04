@@ -8,15 +8,18 @@ namespace PricingEngineUnitTestProject
     [TestClass]
     public class UnitTest1
     {
+        private static Pricing pricing;
+        private static Dictionary<string, decimal> stockKeepingUnits;
+
         [ClassInitialize]
         public static void InitializePricingEngine(TestContext context)
         {
-            List<StockKeepingUnit> stockKeepingUnits = new List<StockKeepingUnit>
+            stockKeepingUnits = new Dictionary<string, decimal>
             {
-                new StockKeepingUnit("A", 50),
-                new StockKeepingUnit("B", 30),
-                new StockKeepingUnit("C", 20),
-                new StockKeepingUnit("D", 15)
+                {"A", 50 },
+                {"B", 30},
+                {"C", 20},
+                {"D", 15}
             };
 
             FixedPriceDiscountRule multiBuyA = new FixedPriceDiscountRule(
@@ -36,13 +39,26 @@ namespace PricingEngineUnitTestProject
                 30, 
                 stockKeepingUnits);
 
-            Pricing pricing = new Pricing(stockKeepingUnits, new[] { multiBuyA, multiBuyB, comboBuyCD });
+            pricing = new Pricing(stockKeepingUnits, new[] { multiBuyA, multiBuyB, comboBuyCD });
         }
 
         [TestMethod]
-        public void TestMethod1()
+        public void TestMethodNoAppliedPromotions()
         {
-            
+            LineItem[] lineItems = new[] { new LineItem("A", 1, stockKeepingUnits), new LineItem("B", 1, stockKeepingUnits), new LineItem("C", 1, stockKeepingUnits) };            
+            Assert.AreEqual(100, pricing.CalculateTotal(lineItems), "");
+        }
+
+        [TestMethod]
+        public void TestMethodMultiBuyAB()
+        {
+            Assert.Inconclusive();
+        }
+
+        [TestMethod]
+        public void TestMethodComboBuyCD()
+        {
+            Assert.Inconclusive();
         }
     }
 }

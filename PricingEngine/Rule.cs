@@ -39,7 +39,7 @@ namespace PricingEngine
 
         internal decimal Price;
 
-        public FixedPriceDiscountRule(IEnumerable<AffectedSku> affectedSkus, decimal price, IEnumerable<StockKeepingUnit> stockKeepingUnits)
+        public FixedPriceDiscountRule(IEnumerable<AffectedSku> affectedSkus, decimal price, Dictionary<string, decimal> stockKeepingUnits)
         {
             if (affectedSkus == null)
             {
@@ -51,13 +51,11 @@ namespace PricingEngine
                 throw new ArgumentOutOfRangeException(nameof(price), "Price cannot be less than 0");
             }
 
-            Dictionary<string, StockKeepingUnit> knownUnits = stockKeepingUnits.ToDictionary(s => s.Name, s => s);
-
-            foreach (string skuName in affectedSkus)
+            foreach (AffectedSku affectedSku in affectedSkus)
             {
-                if (!knownUnits.ContainsKey(skuName))
+                if (!stockKeepingUnits.ContainsKey(affectedSku.Name))
                 {
-                    throw new ArgumentException($"Unknown line item SKU {skuName}");
+                    throw new ArgumentException($"Unknown line item SKU {affectedSku.Name}");
                 }
             }
         }
