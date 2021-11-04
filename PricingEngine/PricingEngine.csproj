@@ -41,6 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ComboBuyDiscountRule.cs" />
+    <Compile Include="FixedPriceDiscountRule.cs" />
     <Compile Include="Pricing.cs" />
     <Compile Include="Rule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

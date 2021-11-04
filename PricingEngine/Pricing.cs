@@ -6,16 +6,22 @@ namespace PricingEngine
 {
     public class Pricing
     {
-        internal Dictionary<string, decimal> StockKeepingUnits
-        {
-            get; private set;
-        }
+        private readonly Dictionary<string, decimal> stockKeepingUnits;
 
-        internal IEnumerable<Rule> Rules
-        {
-            get; private set;
-        }
-
+        private readonly IEnumerable<Rule> rules;
+        
+        /// <summary>
+        /// Create a pricing object for calculating the total of a list of items
+        /// </summary>
+        /// <param name="stockKeepingUnits">
+        /// A list of the stock keeping units and the standard retail price for each
+        /// </param>
+        /// <param name="rules">
+        /// A list of rules that applies to <paramref name="stockKeepingUnits"/>        
+        /// </param>
+        /// <remarks>
+        /// Rules referencing an item not in <paramref name="stockKeepingUnits"/> will be silently ignored
+        /// </remarks>
         public Pricing(Dictionary<string, decimal> stockKeepingUnits,  IEnumerable<Rule> rules)
         {
             if (stockKeepingUnits == null)
@@ -28,77 +34,37 @@ namespace PricingEngine
                 throw new ArgumentNullException(nameof(rules));
             }
 
-            StockKeepingUnits = stockKeepingUnits;
-            Rules = rules;
+            this.stockKeepingUnits = stockKeepingUnits;
+            this.rules = rules;
         }
 
+        /// <summary>
+        /// Given a list of items and the quantities of each, calculate the final price of the items, after all rules have been applied
+        /// </summary>
+        /// <param name="lineItems">
+        /// A list of items and the quantities of each for which the total should be calculated
+        /// </param>
+        /// <returns>
+        /// The items total after all discounts have been applied
+        /// </returns>
         public decimal CalculateTotal(Dictionary<string, uint> lineItems)
         {
             Dictionary<string, uint> remainingItems = new Dictionary<string, uint>(lineItems);
 
             decimal total = 0;
 
-            foreach (Rule rule in Rules)
+            foreach (Rule rule in rules)
             {
                 List<string> itemKeys = lineItems.Keys.ToList();
                 if (itemKeys.Intersect(rule.AffectedSkus).SequenceEqual(rule.AffectedSkus))
                 {
-                    total = total + ProcessRule(ref remainingItems, rule);
+                    total = total + rule.CalculateTotal(ref remainingItems);
                 }
             }
 
             foreach (KeyValuePair<string, uint> remaining in remainingItems)
             {
-                total = total + (StockKeepingUnits[remaining.Key] * remaining.Value);
-            }
-
-            return total;
-        }
-
-        private decimal ProcessRule(ref Dictionary<string, uint> lineItems, Rule rule)
-        {
-            decimal total = 0;
-            FixedPriceDiscountRule fixedPriceDiscountRule = rule as FixedPriceDiscountRule;
-            if (fixedPriceDiscountRule != null)
-            {
-                while (true)
-                {
-                    string affectedSku = fixedPriceDiscountRule.AffectedSkus.First();
-                    if (lineItems[affectedSku] >= fixedPriceDiscountRule.RequiredQuantity)
-                    {
-                        lineItems[affectedSku] = lineItems[affectedSku] - fixedPriceDiscountRule.RequiredQuantity;
-                        total = total + fixedPriceDiscountRule.Price;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-            }
-
-            ComboBuyDiscountRule comboBuyDiscountRule = rule as ComboBuyDiscountRule;
-            if (comboBuyDiscountRule != null)
-            {
-                while (true)
-                {
-                    // at least one of every item in the combo rule must be present for the rule to take effect
-                    if (lineItems
-                        .Where(l => comboBuyDiscountRule.AffectedSkus.Contains(l.Key))
-                        .All(l => l.Value >= 1))
-                    {
-                        foreach (string ruleSku in comboBuyDiscountRule.AffectedSkus)
-                        {
-                            lineItems[ruleSku] = lineItems[ruleSku] - 1;                            
-                        }
-
-                        total = total + comboBuyDiscountRule.Price;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
+                total = total + (stockKeepingUnits[remaining.Key] * remaining.Value);
             }
 
             return total;

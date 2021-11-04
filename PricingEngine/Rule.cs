@@ -41,59 +41,17 @@ namespace PricingEngine
 
             AffectedSkus = affectedSkus;
         }
+
+        /// <summary>
+        /// Given a list of items for which the total is to be calculated, calculate the value of the items affected, and remove these from the list 
+        /// of items
+        /// </summary>
+        /// <param name="lineItems">A list of the items remaining to be totalled up. The quantity of affected items will be removed from this list</param>
+        /// <returns>
+        /// The value of the affected items in <paramref name="lineItems"/>
+        /// </returns>
+        public abstract decimal CalculateTotal(ref Dictionary<string, uint> lineItems);
     }
-
-    public class FixedPriceDiscountRule : Rule
-    {
-        internal decimal Price
-        {
-            get; private set;
-        }
-
-        internal uint RequiredQuantity
-        {
-            get; private set;
-        }
-
-        public FixedPriceDiscountRule(string affectedSku, uint requiredQuantity, decimal price, Dictionary<string, decimal> stockKeepingUnits) : base(new List<string> { affectedSku }, stockKeepingUnits)
-        {
-            if (price < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(price), "Price cannot be less than 0");
-            }
-
-            if (string.IsNullOrEmpty(affectedSku))
-            {
-                throw new ArgumentNullException(nameof(price), "Affected SKU must be provided");
-            }
-                        
-            if (!stockKeepingUnits.ContainsKey(affectedSku))
-            {
-                throw new ArgumentException($"Unknown line item SKU {affectedSku}");
-            }            
-
-            Price = price;
-            RequiredQuantity = requiredQuantity;
-        }
-    }
-
-    public class ComboBuyDiscountRule : Rule
-    {
-        internal decimal Price
-        {
-            get; private set;
-        }
-
-        public ComboBuyDiscountRule(IEnumerable<string> affectedSkus, decimal price, Dictionary<string, decimal> stockKeepingUnits) : base(affectedSkus, stockKeepingUnits)
-        {
-            if (price < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(price), "Price cannot be less than 0");
-            }
-
-            Price = price;
-        }
-    }
-
+    
     // Future extension public class PercenttageDiscountRule : Rule
 }
