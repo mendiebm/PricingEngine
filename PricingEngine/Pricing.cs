@@ -79,6 +79,30 @@ namespace PricingEngine
 
             }
 
+            ComboBuyDiscountRule comboBuyDiscountRule = rule as ComboBuyDiscountRule;
+            if (comboBuyDiscountRule != null)
+            {
+                while (true)
+                {
+                    // at least one of every item in the combo rule must be present for the rule to take effect
+                    if (lineItems
+                        .Where(l => comboBuyDiscountRule.AffectedSkus.Contains(l.Key))
+                        .All(l => l.Value >= 1))
+                    {
+                        foreach (string ruleSku in comboBuyDiscountRule.AffectedSkus)
+                        {
+                            lineItems[ruleSku] = lineItems[ruleSku] - 1;                            
+                        }
+
+                        total = total + comboBuyDiscountRule.Price;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
             return total;
         }
     }
