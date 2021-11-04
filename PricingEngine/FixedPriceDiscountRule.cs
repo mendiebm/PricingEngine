@@ -23,15 +23,7 @@ namespace PricingEngine
                 throw new ArgumentOutOfRangeException(nameof(price), "Price cannot be less than 0");
             }
 
-            if (string.IsNullOrEmpty(affectedSku))
-            {
-                throw new ArgumentNullException(nameof(price), "Affected SKU must be provided");
-            }
-
-            if (!stockKeepingUnits.ContainsKey(affectedSku))
-            {
-                throw new ArgumentException($"Unknown line item SKU {affectedSku}");
-            }
+            // base rule already checks affected sku is valid            
 
             Price = price;
             RequiredQuantity = requiredQuantity;

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace PricingEngineUnitTestProject
 {
     [TestClass]
-    public class UnitTest1
+    public class UnitTestPricing
     {
         private static Pricing pricing;
         private static Dictionary<string, decimal> stockKeepingUnits;

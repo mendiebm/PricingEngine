@@ -35,7 +35,7 @@ namespace PricingEngine
             {
                 if (!stockKeepingUnits.ContainsKey(affectedSku))
                 {
-                    throw new ArgumentException(nameof(affectedSkus), $"Unknown line item SKU {affectedSku}");
+                    throw new ArgumentOutOfRangeException(nameof(affectedSkus), $"Unknown line item SKU '{affectedSku}'");
                 }
             }
 
