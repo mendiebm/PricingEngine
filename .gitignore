@@ -1,0 +1,27 @@
+# Visual Studio user solution settings
+*.suo
+*.user
+.vs
+ 
+# log files
+*.log
+
+# coverage results file
+results.xml 
+
+# vs build output and test results
+bin/
+obj/
+TestResults/
+
+# nuget packages
+packages/
+
+# node
+node_modules
+
+.idea
+
+__pycache__
+
+.mypy_cache
