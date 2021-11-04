@@ -10,11 +10,7 @@ namespace PricingEngine
         {
             get; private set;
         }
-
-        public Dictionary<string, decimal> StockKeepingUnits
-        {
-            get; private set;
-        }
+        
 
         protected Rule(IEnumerable<string> affectedSkus, Dictionary<string, decimal> stockKeepingUnits)
         {
@@ -27,9 +23,6 @@ namespace PricingEngine
             {
                 throw new ArgumentNullException(nameof(stockKeepingUnits), "Stock keeping units must be provided");
             }
-
-            StockKeepingUnits = stockKeepingUnits;
-            
 
             foreach (string affectedSku in affectedSkus)
             {

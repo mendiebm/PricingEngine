@@ -57,7 +57,7 @@ namespace PricingEngine
             {
                 string message = unknownItems.Count() == 1 ?
                     $"Line item {unknownItems.First()} is not a valid stock keeping unit" :
-                    $"Line items {string.Join(",", unknownItems)} are not valid stock keeping units";
+                    $"Line items {string.Join(", ", unknownItems)} are not valid stock keeping units";
                 throw new ArgumentOutOfRangeException(nameof(lineItems), message);                    
             }
 

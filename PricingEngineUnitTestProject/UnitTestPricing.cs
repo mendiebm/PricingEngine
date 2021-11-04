@@ -10,6 +10,7 @@ namespace PricingEngineUnitTestProject
     {
         private static Pricing pricing;
         private static Dictionary<string, decimal> stockKeepingUnits;
+        private static List<Rule> rules;
 
         [ClassInitialize]
         public static void InitializePricingEngine(TestContext context)
@@ -37,7 +38,8 @@ namespace PricingEngineUnitTestProject
                 price: 30, 
                 stockKeepingUnits: stockKeepingUnits);
 
-            pricing = new Pricing(stockKeepingUnits, new List<Rule> { multiBuyA, multiBuyB, comboBuyCD });
+            rules = new List<Rule> { multiBuyA, multiBuyB, comboBuyCD };
+            pricing = new Pricing(stockKeepingUnits, rules);
         }
 
         [TestMethod]
@@ -107,6 +109,37 @@ namespace PricingEngineUnitTestProject
 
             ArgumentOutOfRangeException exception = Assert.ThrowsException<ArgumentOutOfRangeException>(() => pricing.CalculateTotal(lineItems));
             Assert.AreEqual("Line item E is not a valid stock keeping unit\r\nParameter name: lineItems", exception.Message);
+        }
+
+        [TestMethod]
+        public void TestMethodUnknownItems()
+        {
+            Dictionary<string, uint> lineItems = new Dictionary<string, uint>()
+            {
+                { "A", 3 },
+                { "B", 5 },
+                { "C", 1 },
+                { "D", 1 },
+                { "E", 1 },
+                { "F", 1 }
+            };
+
+            ArgumentOutOfRangeException exception = Assert.ThrowsException<ArgumentOutOfRangeException>(() => pricing.CalculateTotal(lineItems));
+            Assert.AreEqual("Line items E, F are not valid stock keeping units\r\nParameter name: lineItems", exception.Message);
+        }
+
+        [TestMethod]
+        public void TestMethodInvalidStockKeepingItems()
+        {
+            ArgumentNullException exception = Assert.ThrowsException<ArgumentNullException>(() => new Pricing(null, rules));
+            Assert.AreEqual("Value cannot be null.\r\nParameter name: stockKeepingUnits", exception.Message);
+        }
+
+        [TestMethod]
+        public void TestMethodInvalidRules()
+        {
+            ArgumentNullException exception = Assert.ThrowsException<ArgumentNullException>(() => new Pricing(new Dictionary<string, decimal>(), null));
+            Assert.AreEqual("Value cannot be null.\r\nParameter name: rules", exception.Message);
         }
     }
 }
